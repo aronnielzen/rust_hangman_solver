@@ -17,12 +17,12 @@ fn initial_word_sorter<'a>(word_length: usize, word_vector: &'a [&'static str]) 
 
 
 
-fn char_guesser_from_word_list(alphabet: &str, word_vector: &Vec<&str>) -> char {
+fn char_guesser_from_word_list(alphabet: &str, word_vector: &Vec<&str>, guess_vector: &Vec<char>) -> char {
     let mut highest_count = 0;
     let mut current_count = 0;
-    let mut current_guess = 'a';
+    let mut current_guess = words::SWEDISH_ALPHABET.chars().nth(0).unwrap();
 
-    for alphabetic_character in alphabet.chars() {
+    for alphabetic_character in alphabet.chars().filter(|c| !guess_vector.contains(c)) {
 
         current_count = 0;
 
@@ -37,6 +37,8 @@ fn char_guesser_from_word_list(alphabet: &str, word_vector: &Vec<&str>) -> char 
         if current_count > highest_count {
             highest_count = current_count;
             current_guess = alphabetic_character;
+            println!("Current highest count: {}", highest_count);
+            println!("Current guess: {}", current_guess);
         }
     }
     current_guess
@@ -86,17 +88,37 @@ fn positional_word_sorter<'b>(char_positioning_map: &Vec<(usize, char)>, word_ve
 
 fn main() {
 
-    let mut current_vec = initial_word_sorter(5, words::WORD_LIST);
-    println!("{:?}", current_vec);
+    println!("Welcome to the Hangman Solver!");
 
-    let mut guess = char_guesser_from_word_list(words::SWEDISH_ALPHABET, &current_vec);
+    let mut current_vec = initial_word_sorter(5, words::WORD_LIST);
+    let mut guess_vector = Vec::new();
+    let mut user_inputted_length = String::new();
+    let mut user_input_map = String::new();
+
+    let mut guess = char_guesser_from_word_list(words::SWEDISH_ALPHABET, &current_vec, &guess_vector);
     println!("{}", guess);
 
-    let mut user_input_map = String::new();
-    io::stdin().read_line(&mut user_input_map);
-    println!("{}", user_input_map);
+    guess_vector.push(guess);
+    println!("{:?}", guess_vector);
 
-    let current_position_vec = user_position_vec_converter(&user_input_map);
-    println!("{:?}", current_position_vec);
-    
+    while current_vec.len() > 1 {
+
+        println!("Enter the current map of the word, use _ for unknown letters (e.g. a__e_): ");
+        
+        io::stdin().read_line(&mut user_input_map);
+        user_input_map = user_input_map.trim().to_string();
+        println!("{}", user_input_map);
+
+        guess = char_guesser_from_word_list(words::SWEDISH_ALPHABET, &current_vec, &guess_vector);
+        println!("{}", guess);
+        guess_vector.push(guess);
+        println!("{:?}", guess_vector);
+
+
+        let current_position_vec = user_position_vec_converter(&user_input_map);
+        println!("{:?}", current_position_vec);
+        current_vec = positional_word_sorter(&current_position_vec, &current_vec);
+        println!("{:?}", current_vec);
+
+    }
 }
