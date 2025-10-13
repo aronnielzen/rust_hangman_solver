@@ -2,6 +2,9 @@ use std::io;
 mod config;
 
 
+// One guesser and one filter function needs to be implemented with guess_list carried over
+
+
 fn word_vec_loader(wordlist: &&[&str]) -> Vec<String> {
     let mut word_vector = Vec::new();
 
@@ -64,7 +67,7 @@ fn main() {
     println!("Filtered words: {:?}", filtered_words);
 
     while filtered_words.len() > 1 {
-        char_positioning_map.push(word_heatmap_builder_via_user_input(filtered_words[0].len()).pop().unwrap());
+        char_positioning_map = word_heatmap_builder_via_user_input(filtered_words[0].len()).iter().cloned().collect();
         println!("Character positioning map: {:?}", char_positioning_map);
     }
 }
