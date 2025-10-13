@@ -1,124 +1,70 @@
 use std::io;
-mod words;
+mod config;
 
 
+fn word_vec_loader(wordlist: &&[&str]) -> Vec<String> {
+    let mut word_vector = Vec::new();
+
+    for word in wordlist.iter() {
+        word_vector.push((*word).into());
+    }
+    word_vector
+}
 
 
-fn initial_word_sorter<'a>(word_length: usize, word_vector: &'a [&'static str]) -> Vec<&'a str> {
+fn word_vec_length_filter_via_user_input(word_vector: &Vec<String>) -> Vec<&str> {
     let mut new_word_vector = Vec::new();
+    let mut user_input = String::new();
+    io::stdin().read_line(&mut user_input).expect("Failed to read line");
+    let word_length: usize = user_input.trim().parse().expect("Please type a number!");
 
     for word in word_vector {
-        if word.len() == word_length {
-            new_word_vector.push(*word);
+        if word.trim().len() == word_length {
+            new_word_vector.push(word.as_str());
         } 
     }
     new_word_vector
 }
 
 
+fn word_heatmap_builder_via_user_input(word_length: usize) -> Vec<(char, usize)> {
+    let mut char_map: Vec<(char, usize)> = Vec::new();
+    let mut user_input = String::new();
+    let mut trimmed_user_input = String::new();
 
-fn char_guesser_from_word_list(alphabet: &str, word_vector: &Vec<&str>, guess_vector: &Vec<char>) -> char {
-    let mut highest_count = 0;
-    let mut current_count = 0;
-    let mut current_guess = words::SWEDISH_ALPHABET.chars().nth(0).unwrap();
+    while trimmed_user_input.len() != word_length || trimmed_user_input.is_empty() {
+        println!("Enter current known positions of the word, use _ for unknown letters (e.g. a__e_): ");
 
-    for alphabetic_character in alphabet.chars().filter(|c| !guess_vector.contains(c)) {
+        user_input.clear();
+        trimmed_user_input.clear();
 
-        current_count = 0;
+        io::stdin().read_line(&mut user_input).expect("Failed to read line");
+        trimmed_user_input = user_input.trim().to_string();
+    }
 
-        for word in word_vector {
-            for character in word.chars() {
-                if character == alphabetic_character {
-                    current_count += 1;
-                }
-            }
-        }
+    let provided_positions: Vec<char> = trimmed_user_input.chars().collect();
 
-        if current_count > highest_count {
-            highest_count = current_count;
-            current_guess = alphabetic_character;
-            println!("Current highest count: {}", highest_count);
-            println!("Current guess: {}", current_guess);
+    for i in 0..provided_positions.len() {
+        if provided_positions[i] != '_' {
+            char_map.push((provided_positions[i], i));
         }
     }
-    current_guess
+    char_map
 }
-
-
-
-
-
-fn user_position_vec_converter(position_string: &str) -> Vec<(usize, char)> {
-    let mut position_vector = Vec::new();
-
-    for i in 0..position_string.len() {
-        let char_at_pos = position_string.chars().nth(i);
-        if char_at_pos != Some('_') {
-            position_vector.push((i, char_at_pos.unwrap()));
-        }
-    }
-    position_vector
-}
-
-
-// Evaluates if a word has correct character placement
-fn position_evaluter(word: &str, char_positioning_map: &Vec<(usize, char)>) -> bool {
-    for condition in char_positioning_map {
-        if word.chars().nth(condition.0) != Some(condition.1) {
-            return false;
-        }
-    }
-    true  
-}
-
-
-// Returns a list of references to words with correct character placement
-fn positional_word_sorter<'b>(char_positioning_map: &Vec<(usize, char)>, word_vector: &Vec<&'b str>) -> Vec<&'b str> {
-    let mut new_word_vector = Vec::new();
-
-    for word in word_vector {
-        if position_evaluter(word, char_positioning_map) {
-            new_word_vector.push(*word);
-        }
-    }
-    new_word_vector
-}
-
 
 
 fn main() {
-
     println!("Welcome to the Hangman Solver!");
+    println!("Enter the length of the word to guess:");
 
-    let mut current_vec = initial_word_sorter(5, words::WORD_LIST);
-    let mut guess_vector = Vec::new();
-    let mut user_inputted_length = String::new();
-    let mut user_input_map = String::new();
+    let word_list = config::WORD_LIST;
+    let word_vector = word_vec_loader(&word_list);
+    let mut filtered_words = word_vec_length_filter_via_user_input(&word_vector);
+    let mut char_positioning_map: Vec<(char, usize)> = Vec::new();
+    println!("Filtered words: {:?}", filtered_words);
 
-    let mut guess = char_guesser_from_word_list(words::SWEDISH_ALPHABET, &current_vec, &guess_vector);
-    println!("{}", guess);
-
-    guess_vector.push(guess);
-    println!("{:?}", guess_vector);
-
-    while current_vec.len() > 1 {
-
-        println!("Enter the current map of the word, use _ for unknown letters (e.g. a__e_): ");
-        
-        io::stdin().read_line(&mut user_input_map);
-        user_input_map = user_input_map.trim().to_string();
-        println!("{}", user_input_map);
-
-        guess = char_guesser_from_word_list(words::SWEDISH_ALPHABET, &current_vec, &guess_vector);
-        println!("{}", guess);
-        guess_vector.push(guess);
-        println!("{:?}", guess_vector);
-
-
-        let current_position_vec = user_position_vec_converter(&user_input_map);
-        println!("{:?}", current_position_vec);
-        current_vec = positional_word_sorter(&current_position_vec, &current_vec);
-        println!("{:?}", current_vec);
-
+    while filtered_words.len() > 1 {
+        char_positioning_map.push(word_heatmap_builder_via_user_input(filtered_words[0].len()).pop().unwrap());
+        println!("Character positioning map: {:?}", char_positioning_map);
     }
 }
