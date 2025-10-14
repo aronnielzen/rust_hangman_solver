@@ -1,7 +1,6 @@
 use std::io;
 mod config;
 
-
 fn word_vec_loader(wordlist: &&[&str]) -> Vec<String> {
     let mut word_vector = Vec::new();
 
@@ -11,21 +10,21 @@ fn word_vec_loader(wordlist: &&[&str]) -> Vec<String> {
     word_vector
 }
 
-
 fn word_vec_length_filter_via_user_input(word_vector: &Vec<String>) -> Vec<&str> {
     let mut new_word_vector = Vec::new();
     let mut user_input = String::new();
-    io::stdin().read_line(&mut user_input).expect("Failed to read line");
+    io::stdin()
+        .read_line(&mut user_input)
+        .expect("Failed to read line");
     let word_length: usize = user_input.trim().parse().expect("Please type a number!");
 
     for word in word_vector {
         if word.trim().len() == word_length {
             new_word_vector.push(word.as_str());
-        } 
+        }
     }
     new_word_vector
 }
-
 
 fn char_position_vec_builder_via_user_input(word_length: usize) -> Vec<(char, usize)> {
     let mut char_map: Vec<(char, usize)> = Vec::new();
@@ -33,12 +32,16 @@ fn char_position_vec_builder_via_user_input(word_length: usize) -> Vec<(char, us
     let mut trimmed_user_input = String::new();
 
     while trimmed_user_input.len() != word_length || trimmed_user_input.is_empty() {
-        println!("Enter current known positions of the word, use _ for unknown letters (e.g. a__e_): ");
+        println!(
+            "Enter current known positions of the word, use _ for unknown letters (e.g. a__e_): "
+        );
 
         user_input.clear();
         trimmed_user_input.clear();
 
-        io::stdin().read_line(&mut user_input).expect("Failed to read line");
+        io::stdin()
+            .read_line(&mut user_input)
+            .expect("Failed to read line");
         trimmed_user_input = user_input.trim().to_string();
     }
 
@@ -52,16 +55,14 @@ fn char_position_vec_builder_via_user_input(word_length: usize) -> Vec<(char, us
     char_map
 }
 
-
 fn position_evaluter(word: &str, char_positioning_map: &Vec<(usize, char)>) -> bool {
     for condition in char_positioning_map {
         if word.chars().nth(condition.0) != Some(condition.1) {
             return false;
         }
     }
-    true  
+    true
 }
-
 
 fn contains_char_checker(word: &str, guess_list: &Vec<char>) -> bool {
     for c in word.chars() {
@@ -72,12 +73,16 @@ fn contains_char_checker(word: &str, guess_list: &Vec<char>) -> bool {
     false
 }
 
-
-fn word_position_filter(char_position_vec: Vec<(char, usize)>, guess_list: Vec<char>, word_list: Vec<&str>) -> Vec<&str> {
+fn word_position_filter(
+    char_position_vec: Vec<(char, usize)>,
+    guess_list: Vec<char>,
+    word_list: Vec<&str>,
+) -> Vec<&str> {
     let mut filtered_word_list = Vec::new();
-    
+
     for word in word_list {
-        if !contains_char_checker(word, &guess_list) && position_evaluter(word, &char_position_vec) {
+        if !contains_char_checker(word, &guess_list) && position_evaluter(word, &char_position_vec)
+        {
             filtered_word_list.push(word);
         }
     }
@@ -90,7 +95,6 @@ fn guesser(guess_list: Vec<char>, word_list: Vec<&str>, alphabet: &str) -> char 
     let mut current_guess = alphabet.chars().nth(0).unwrap();
 
     for alphabetic_character in alphabet.chars().filter(|c| !guess_list.contains(c)) {
-
         current_count = 0;
 
         for word in word_vector {
@@ -109,12 +113,9 @@ fn guesser(guess_list: Vec<char>, word_list: Vec<&str>, alphabet: &str) -> char 
     current_guess
 }
 
-
 // let guess_list = tot_guess_list.iter().filter(|c| !char_position_vec.iter().any(|(ch, _)| ch == *c)).collect();
 
-
 fn main() {
-    /*
     println!("Welcome to the Hangman Solver!");
     println!("Enter the length of the word to guess:");
 
@@ -125,8 +126,10 @@ fn main() {
     println!("Filtered words: {:?}", filtered_words);
 
     while filtered_words.len() > 1 {
-        char_positioning_map = char_position_vec_builder_via_user_input(filtered_words[0].len()).iter().cloned().collect();
+        char_positioning_map = char_position_vec_builder_via_user_input(filtered_words[0].len())
+            .iter()
+            .cloned()
+            .collect();
         println!("Character positioning map: {:?}", char_positioning_map);
     }
-        */
 }
