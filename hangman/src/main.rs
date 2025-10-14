@@ -2,9 +2,6 @@ use std::io;
 mod config;
 
 
-// One guesser and one filter function needs to be implemented with guess_list carried over
-
-
 fn word_vec_loader(wordlist: &&[&str]) -> Vec<String> {
     let mut word_vector = Vec::new();
 
@@ -30,7 +27,7 @@ fn word_vec_length_filter_via_user_input(word_vector: &Vec<String>) -> Vec<&str>
 }
 
 
-fn word_heatmap_builder_via_user_input(word_length: usize) -> Vec<(char, usize)> {
+fn char_position_vec_builder_via_user_input(word_length: usize) -> Vec<(char, usize)> {
     let mut char_map: Vec<(char, usize)> = Vec::new();
     let mut user_input = String::new();
     let mut trimmed_user_input = String::new();
@@ -56,7 +53,68 @@ fn word_heatmap_builder_via_user_input(word_length: usize) -> Vec<(char, usize)>
 }
 
 
+fn position_evaluter(word: &str, char_positioning_map: &Vec<(usize, char)>) -> bool {
+    for condition in char_positioning_map {
+        if word.chars().nth(condition.0) != Some(condition.1) {
+            return false;
+        }
+    }
+    true  
+}
+
+
+fn contains_char_checker(word: &str, guess_list: &Vec<char>) -> bool {
+    for c in word.chars() {
+        if guess_list.contains(&c) {
+            return true;
+        }
+    }
+    false
+}
+
+
+fn word_position_filter(char_position_vec: Vec<(char, usize)>, guess_list: Vec<char>, word_list: Vec<&str>) -> Vec<&str> {
+    let mut filtered_word_list = Vec::new();
+    
+    for word in word_list {
+        if !contains_char_checker(word, &guess_list) && position_evaluter(word, &char_position_vec) {
+            filtered_word_list.push(word);
+        }
+    }
+    filtered_word_list
+}
+
+fn guesser(guess_list: Vec<char>, word_list: Vec<&str>, alphabet: &str) -> char {
+    let mut highest_count = 0;
+    let mut current_count = 0;
+    let mut current_guess = alphabet.chars().nth(0).unwrap();
+
+    for alphabetic_character in alphabet.chars().filter(|c| !guess_list.contains(c)) {
+
+        current_count = 0;
+
+        for word in word_vector {
+            for character in word.chars() {
+                if character == alphabetic_character {
+                    current_count += 1;
+                }
+            }
+        }
+
+        if current_count > highest_count {
+            highest_count = current_count;
+            current_guess = alphabetic_character;
+        }
+    }
+    current_guess
+}
+
+
+// let guess_list = tot_guess_list.iter().filter(|c| !char_position_vec.iter().any(|(ch, _)| ch == *c)).collect();
+
+
 fn main() {
+    /*
     println!("Welcome to the Hangman Solver!");
     println!("Enter the length of the word to guess:");
 
@@ -67,7 +125,8 @@ fn main() {
     println!("Filtered words: {:?}", filtered_words);
 
     while filtered_words.len() > 1 {
-        char_positioning_map = word_heatmap_builder_via_user_input(filtered_words[0].len()).iter().cloned().collect();
+        char_positioning_map = char_position_vec_builder_via_user_input(filtered_words[0].len()).iter().cloned().collect();
         println!("Character positioning map: {:?}", char_positioning_map);
     }
+        */
 }
