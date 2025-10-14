@@ -1,7 +1,7 @@
 use std::io;
 mod config;
 
-fn word_vec_loader(wordlist: &&[&str]) -> Vec<String> {
+fn word_vec_loader(wordlist: &[&str]) -> Vec<String> {
     let mut word_vector = Vec::new();
 
     for word in wordlist.iter() {
@@ -55,9 +55,9 @@ fn char_position_vec_builder_via_user_input(word_length: usize) -> Vec<(char, us
     char_map
 }
 
-fn position_evaluter(word: &str, char_positioning_map: &Vec<(usize, char)>) -> bool {
+fn position_evaluter(word: &str, char_positioning_map: &Vec<(char, usize)>) -> bool {
     for condition in char_positioning_map {
-        if word.chars().nth(condition.0) != Some(condition.1) {
+        if word.chars().nth(condition.1) != Some(condition.0) {
             return false;
         }
     }
@@ -89,7 +89,7 @@ fn word_position_filter(
     filtered_word_list
 }
 
-fn guesser(guess_list: Vec<char>, word_list: Vec<&str>, alphabet: &str) -> char {
+fn guesser(guess_list: &Vec<char>, word_vector: &Vec<&str>, alphabet: &str) -> char {
     let mut highest_count = 0;
     let mut current_count = 0;
     let mut current_guess = alphabet.chars().nth(0).unwrap();
@@ -119,17 +119,17 @@ fn main() {
     println!("Welcome to the Hangman Solver!");
     println!("Enter the length of the word to guess:");
 
-    let word_list = config::WORD_LIST;
-    let word_vector = word_vec_loader(&word_list);
-    let mut filtered_words = word_vec_length_filter_via_user_input(&word_vector);
+    let init_word_vector = word_vec_loader(config::WORD_LIST);
+    let mut filtered_word_vector = word_vec_length_filter_via_user_input(&init_word_vector);
     let mut char_positioning_map: Vec<(char, usize)> = Vec::new();
-    println!("Filtered words: {:?}", filtered_words);
+    println!("Filtered words: {:?}", filtered_word_vector);
 
-    while filtered_words.len() > 1 {
-        char_positioning_map = char_position_vec_builder_via_user_input(filtered_words[0].len())
-            .iter()
-            .cloned()
-            .collect();
+    while filtered_word_vector.len() > 1 {
+        char_positioning_map =
+            char_position_vec_builder_via_user_input(filtered_word_vector[0].len())
+                .iter()
+                .cloned()
+                .collect();
         println!("Character positioning map: {:?}", char_positioning_map);
     }
 }
