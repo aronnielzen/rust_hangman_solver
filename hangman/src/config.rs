@@ -1,4 +1,4 @@
-pub const SWEDISH_ALPHABET: &str = "abcdefghijklmnopqrstuvwxyzåäö";
+pub const SWEDISH_ALPHABET: &str = "_abcdefghijklmnopqrstuvwxyzåäö";
 pub static WORD_LIST: &[&str] = &[
     "à",
     "à jour",
